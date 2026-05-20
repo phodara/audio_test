@@ -1,4 +1,4 @@
-# audio_test
+# Hosyond ESP32-S3 Audio
 
 WAV audio player for the **ES3C28P** board (2.8" ESP32-S3 Display).  
 Plays 16-bit PCM WAV files from SD card through the onboard ES8311 codec and FM8002E class-D amplifier.
