@@ -29,6 +29,21 @@
 
 Audio audio;
 
+// ── Playlist ──────────────────────────────────────────────────
+static const char* SOUNDS[] = {
+    "/sounds/angry.mp3",
+    "/sounds/anxiety.mp3",
+    "/sounds/happy.mp3",
+    "/sounds/listening.mp3",
+    "/sounds/sad.mp3",
+    "/sounds/sleep.mp3",
+    "/sounds/surprise.mp3",
+    "/sounds/whacky.mp3",
+};
+static const int NUM_SOUNDS = sizeof(SOUNDS) / sizeof(SOUNDS[0]);
+static int  soundIndex   = 0;
+static unsigned long soundStartMs = 0;
+
 // ── Battery monitoring ────────────────────────────────────────
 static float readBatteryVoltage() {
     int sum = 0;
@@ -131,7 +146,7 @@ void setup() {
     digitalWrite(PIN_PA_EN, LOW);
 
     // 4. Software volume (0–21). 8 is a comfortable room level.
-    audio.setVolume(8);
+    audio.setVolume(2);
 
     // 5. Mount SD card (4-bit mode, fall back to 1-bit)
     SD_MMC.setPins(PIN_SD_CLK, PIN_SD_CMD, PIN_SD_D0,
@@ -140,12 +155,21 @@ void setup() {
     if (!sdOk) { Serial.println("SD: failed"); return; }
     Serial.println("SD: OK");
 
-    // 6. Play — WAV files go in /sounds/ on the SD card root
-    audio.connecttoFS(SD_MMC, "/sounds/anxiety.wav");
+    // 6. Play — cycles through all sounds, 5 seconds each
+    soundIndex = 0;
+    audio.connecttoFS(SD_MMC, SOUNDS[soundIndex]);
+    soundStartMs = millis();
 }
 
 void loop() {
     audio.loop();
+
+    if (millis() - soundStartMs >= 5000) {
+        soundIndex = (soundIndex + 1) % NUM_SOUNDS;
+        Serial.printf("[playlist] -> %s\n", SOUNDS[soundIndex]);
+        audio.connecttoFS(SD_MMC, SOUNDS[soundIndex]);
+        soundStartMs = millis();
+    }
 }
 
 // Required by ESP32-audioI2S to receive decoder status messages
